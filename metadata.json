@@ -1,0 +1,6 @@
+{
+  "name": "AI Team Workspace",
+  "description": "An interactive workspace simulation where a distributed team of AI agents collaborate step-by-step to plan, design, and code Android applications using Gemini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
