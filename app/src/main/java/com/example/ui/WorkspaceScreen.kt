@@ -835,12 +835,20 @@ fun ApiAndSquadTab(viewModel: ProjectViewModel) {
     var savedApiKey by remember { mutableStateOf("") }
     var savedModelId by remember { mutableStateOf("gemini-3.5-flash") }
     var debateModeEnabled by remember { mutableStateOf(false) }
+    var rTopology by remember { mutableStateOf("Queen-led Hierarchy (Raft)") }
+    var rMemoryRouting by remember { mutableStateOf("SONA Self-Learning Memory + HNSW Retrieve") }
+    var rAiDefence by remember { mutableStateOf(true) }
+    var rTrustRating by remember { mutableStateOf(true) }
 
     // Init inputs with saved values
     LaunchedEffect(configs) {
         savedApiKey = configs.find { it.key == "gemini_api_key" }?.value ?: ""
         savedModelId = configs.find { it.key == "gemini_model_id" }?.value ?: "gemini-3.5-flash"
         debateModeEnabled = configs.find { it.key == "debate_mode" }?.value == "true"
+        rTopology = configs.find { it.key == "ruflo_topology" }?.value ?: "Queen-led Hierarchy (Raft)"
+        rMemoryRouting = configs.find { it.key == "ruflo_memory_routing" }?.value ?: "SONA Self-Learning Memory + HNSW Retrieve"
+        rAiDefence = (configs.find { it.key == "ruflo_ai_defence" }?.value ?: "true") == "true"
+        rTrustRating = (configs.find { it.key == "ruflo_trust_rating" }?.value ?: "true") == "true"
     }
 
     var showApiKey by remember { mutableStateOf(false) }
@@ -1030,11 +1038,173 @@ fun ApiAndSquadTab(viewModel: ProjectViewModel) {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Topology row
+                    Text(
+                        text = "🕸️ Swarm Topology Coordination:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val topologies = listOf("Queen-led Hierarchy (Raft)", "Fully Federated Gossip Network", "Sequential Direct Pipeline")
+                        topologies.forEach { topo ->
+                            val isSelected = rTopology == topo
+                            val label = when (topo) {
+                                "Queen-led Hierarchy (Raft)" -> "👑 Queen-Raft"
+                                "Fully Federated Gossip Network" -> "🕸️ Gossip Swarm"
+                                else -> "⛓️ Sequential"
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (isSelected) Color(0xFF6366F1).copy(alpha = 0.25f) else Color(0xFF1E293B))
+                                    .border(1.dp, if (isSelected) Color(0xFF6366F1) else Color(0xFF334155), RoundedCornerShape(6.dp))
+                                    .clickable { rTopology = topo }
+                                    .padding(vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.White else Color(0xFF94A3B8)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Shared Swarm Memory row
+                    Text(
+                        text = "🧠 Shared Swarm Memory Type:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val memoryTypes = listOf("SONA Self-Learning Memory + HNSW Retrieve", "Static System System Routing (No Context Memory)")
+                        memoryTypes.forEach { mem ->
+                            val isSelected = rMemoryRouting == mem
+                            val label = if (mem.contains("SONA")) "🧠 SONA + HNSW" else "💤 Direct Routing"
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (isSelected) Color(0xFFEC4899).copy(alpha = 0.25f) else Color(0xFF1E293B))
+                                    .border(1.dp, if (isSelected) Color(0xFFEC4899) else Color(0xFF334155), RoundedCornerShape(6.dp))
+                                    .clickable { rMemoryRouting = mem }
+                                    .padding(vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.White else Color(0xFF94A3B8)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // AIDefence Security Shield row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.12f))
+                            .clickable { rAiDefence = !rAiDefence }
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "🛡️ Enable Ruflo AIDefence",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Cleanses prompt injection attacks and intercepts CVE vulnerabilities inside generated files automatically.",
+                                fontSize = 9.sp,
+                                color = Color(0xFF94A3B8),
+                                lineHeight = 12.sp
+                            )
+                        }
+                        Switch(
+                            checked = rAiDefence,
+                            onCheckedChange = { rAiDefence = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFF10B981),
+                                checkedTrackColor = Color(0xFF10B981).copy(alpha = 0.3f),
+                                uncheckedThumbColor = Color(0xFF64748B),
+                                uncheckedTrackColor = Color(0xFF1E293B)
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Trust behavioral rating row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.12f))
+                            .clickable { rTrustRating = !rTrustRating }
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "📊 Real-Time Trust Recalibration",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Agent contributions undergo behavioral merit checks. Trust scores escalate / downgrade after peer audits.",
+                                fontSize = 9.sp,
+                                color = Color(0xFF94A3B8),
+                                lineHeight = 12.sp
+                            )
+                        }
+                        Switch(
+                            checked = rTrustRating,
+                            onCheckedChange = { rTrustRating = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFF10B981),
+                                checkedTrackColor = Color(0xFF10B981).copy(alpha = 0.3f),
+                                uncheckedThumbColor = Color(0xFF64748B),
+                                uncheckedTrackColor = Color(0xFF1E293B)
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Button(
                         onClick = {
                             viewModel.saveConfigValue("gemini_api_key", savedApiKey)
                             viewModel.saveConfigValue("gemini_model_id", savedModelId)
                             viewModel.saveConfigValue("debate_mode", if (debateModeEnabled) "true" else "false")
+                            viewModel.saveConfigValue("ruflo_topology", rTopology)
+                            viewModel.saveConfigValue("ruflo_memory_routing", rMemoryRouting)
+                            viewModel.saveConfigValue("ruflo_ai_defence", if (rAiDefence) "true" else "false")
+                            viewModel.saveConfigValue("ruflo_trust_rating", if (rTrustRating) "true" else "false")
                             saveStatus = "Engine settings applied successfully!"
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),

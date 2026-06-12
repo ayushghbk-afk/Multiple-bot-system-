@@ -1,3 +1,5 @@
+import java.net.URL
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
@@ -119,3 +121,19 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+tasks.register("fetchUrl") {
+  doLast {
+    val targetUrl = project.findProperty("targetUrl") as? String ?: "https://raw.githubusercontent.com/ayushghbk-afk/ruflo/main/docs/STATUS.md"
+    try {
+      val content = URL(targetUrl).readText()
+      println("=== CONTENT ===")
+      println(content)
+      println("===============")
+    } catch (e: Exception) {
+      println("Error fetching URL: ${e.message}")
+    }
+  }
+}
+
+
