@@ -97,7 +97,7 @@ object GithubClient {
                                     type = obj.getString("type"),
                                     sha = obj.getString("sha"),
                                     size = obj.optLong("size", 0),
-                                    downloadUrl = obj.optString("download_url", null)
+                                    downloadUrl = if (obj.isNull("download_url")) null else obj.getString("download_url")
                                 )
                             )
                         }
@@ -111,7 +111,7 @@ object GithubClient {
                                 type = obj.getString("type"),
                                 sha = obj.getString("sha"),
                                 size = obj.optLong("size", 0),
-                                downloadUrl = obj.optString("download_url", null)
+                                downloadUrl = if (obj.isNull("download_url")) null else obj.getString("download_url")
                             )
                         )
                     }
