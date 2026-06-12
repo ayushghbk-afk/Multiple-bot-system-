@@ -210,7 +210,7 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
             val parsedKeysList = parseKeys(customKey)
             val isSessionLive = (parsedKeysList.isNotEmpty() || GeminiClient.isApiKeyConfigured())
 
-            val responseMessage: String = if (isSessionLive) {
+            var responseMessage: String = if (isSessionLive) {
                 val agentKey = if (customKey.isNotBlank()) getKeyForAgent(targetAgent.name, customKey) else null
                 val isCurrentGroq = com.example.api.GroqClient.isGroqKey(agentKey)
 
@@ -249,6 +249,20 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
             } else {
                 delay(1000)
                 "Greetings/Feedback received! I am ${targetAgent.name}, ${targetAgent.role}. I have updated my working logs with your request: \"$messageContent\". (Simulator Offline Node)"
+            }
+
+            if (responseMessage.contains("API_KEY_MISSING") || 
+                responseMessage.startsWith("API ERROR") || 
+                responseMessage.startsWith("GROQ API ERROR") || 
+                responseMessage.contains("Network Error") || 
+                responseMessage.startsWith("Error:") ||
+                responseMessage.contains("Request failed")
+            ) {
+                val errorSnippet = responseMessage.lines().take(4).joinToString("\n")
+                responseMessage = "⚠️ [API Connection Session Error - Switched to Local Backup]\n" +
+                        "Note: Live API key returned or encountered a quota/permissions error. Transitioning persona to local guidelines.\n" +
+                        "Error Details:\n$errorSnippet\n\n" +
+                        "Greetings! I am ${targetAgent.name}, ${targetAgent.role}. Operating under local guidelines for project ${project.title}. I have received and integrated your feedback: \"$messageContent\". How else can I assist in refining our Room database entities, Material 3 slate themes, or unit test cases?"
             }
 
             // 4. Record agent's response
@@ -606,8 +620,17 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
                         
                         _currentThinkingAgent.value = task.assignee
                         
-                        if (responseMessage.contains("API_KEY_MISSING")) {
-                            responseMessage = createMockResponse(title, task.assignee, task.title)
+                        if (responseMessage.contains("API_KEY_MISSING") || 
+                            responseMessage.startsWith("API ERROR") || 
+                            responseMessage.startsWith("GROQ API ERROR") || 
+                            responseMessage.contains("Network Error") || 
+                            responseMessage.startsWith("Error:") ||
+                            responseMessage.contains("Request failed")
+                        ) {
+                            val errorSnippet = responseMessage.lines().take(3).joinToString("\n")
+                            responseMessage = "⚠️ [API Connection Failure - Task Offline Fallback]\n" +
+                                    "Error Details:\n$errorSnippet\n\n" +
+                                    createMockResponse(title, task.assignee, task.title)
                         }
                     } else {
                          responseMessage = createMockResponse(title, task.assignee, task.title)
@@ -692,6 +715,25 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
                                     apiKeyOverride = reviewerKey,
                                     modelOverride = chosenModel
                                 )
+                            }
+
+                            if (reviewMessage.contains("API_KEY_MISSING") || 
+                                reviewMessage.startsWith("API ERROR") || 
+                                reviewMessage.startsWith("GROQ API ERROR") || 
+                                reviewMessage.contains("Network Error") || 
+                                reviewMessage.startsWith("Error:") ||
+                                reviewMessage.contains("Request failed")
+                            ) {
+                                val fallbackReview = when (reviewer) {
+                                    AgentRoster.developer -> "💻 Excellent styling specifications, Designer! I will translate these brand tokens into our Jetpack Compose Material 3 theme colors immediately."
+                                    AgentRoster.tester -> "🧪 Solid data persistence layer, Developer! Handing clean Coroutine Flows makes writing test assertions extremely reliable."
+                                    AgentRoster.marketer -> "✍️ Comprehensive test schemas, QA! High code stability gives us full marketing leverage to advertise reliable performance."
+                                    else -> "💼 Fantastic copy hooks! This wraps up our active workspace sprint. Excellent alignment across all departments!"
+                                }
+                                val errorSnippet = reviewMessage.lines().take(2).joinToString("\n")
+                                reviewMessage = "⚠️ [API Connection Failure - Review Offline Fallback]\n" +
+                                        "Reason: $errorSnippet. Transitioning to consensus review backup.\n\n" +
+                                        fallbackReview
                             }
                         } else {
                             reviewMessage = when (reviewer) {
